@@ -1,0 +1,146 @@
+version: '3.8'
+
+services:
+  # PostgreSQL (Docker) - recreated for host connections
+  postgres:
+    image: postgres:15
+    container_name: challenge2_postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-challenge_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-challenge_password}
+      POSTGRES_DB: ${POSTGRES_DB:-challenge2}
+    volumes:
+      - challenge2_postgres_data:/var/lib/postgresql/data
+    networks:
+      - challenge2_network
+    restart: unless-stopped
+
+  # PostgreSQL Database - Using local pgAdmin4 / PostgreSQL 18 installation
+  # Connection: localhost:5432
+  # User: challenge_user
+  # Database: challenge2
+  # Setup: Use pgAdmin4 to create user and database
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: challenge2_qdrant
+    ports:
+      - "6335:6333"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-default-key}
+    networks:
+      - challenge2_network
+    restart: unless-stopped
+
+  # Ollama LLM Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: challenge2_ollama
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+    networks:
+      - challenge2_network
+    restart: unless-stopped
+    # Note: After starting, run:
+    # docker exec challenge2_ollama ollama pull mistral
+
+  # PHP Web Server for Chat Interface
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: challenge2_php
+    ports:
+      - "80:80"
+    volumes:
+      - ./php:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_started
+      qdrant:
+        condition: service_started
+      ollama:
+        condition: service_started
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-challenge_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-challenge_password}
+      POSTGRES_DB: ${POSTGRES_DB:-challenge2}
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-policy_chunks}
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: mistral
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-nomic-embed-text}
+      EMBEDDING_DIMENSION: 768
+    networks:
+      - challenge2_network
+    restart: unless-stopped
+
+  # Redis (Optional - for caching)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: challenge2_redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - challenge2_network
+  #   restart: unless-stopped
+
+  # n8n Workflow Automation
+  n8n:
+    image: n8nio/n8n
+    container_name: challenge2_n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-your-secure-encryption-key-change-this}
+      - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_JWT_SECRET:-your-jwt-secret-change-this}
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-admin123}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-challenge2}
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-challenge_user}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-challenge_password}
+      - N8N_DIAGNOSTICS_ENABLED=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - challenge2_network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  qdrant_storage:
+    driver: local
+  ollama_models:
+    driver: local
+  challenge2_postgres_data:
+    driver: local
+  n8n_data:
+    driver: local
+  # redis_data:
+  #   driver: local
+
+networks:
+  challenge2_network:
+    driver: bridge

@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+env/
+.venv
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+.docker
+docker-compose.override.yml
+
+# Ollama models
+ollama_models/
+
+# Test coverage
+.coverage
+htmlcov/
+
+# Data
+data/
+*.csv
+*.json
+!outputs/
+
+# Misc
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json

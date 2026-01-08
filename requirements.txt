@@ -1,0 +1,31 @@
+# Python dependencies for Policy Discovery and LLM-Driven Structuring
+
+# Core dependencies
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+trafilatura>=1.6.0
+lxml>=4.9.0
+python-dotenv>=1.0.0
+
+# Database
+psycopg2-binary>=2.9.0
+sqlalchemy>=2.0.0
+
+# Vector database
+qdrant-client>=1.6.0
+numpy>=1.24.0
+tiktoken>=0.5.0
+
+# LLM
+openai>=1.0.0
+
+# Utilities
+pandas>=2.0.0
+openpyxl>=3.1.0
+tqdm>=4.65.0
+
+# Development (optional)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+flake8>=6.0.0

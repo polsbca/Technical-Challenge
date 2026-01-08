@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Chat Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .controls label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .controls select {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: white;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.user .bubble {
+            background: #667eea;
+            color: white;
+            border-radius: 18px 18px 0 18px;
+        }
+
+        .message.assistant .bubble {
+            background: #e9ecef;
+            color: #212529;
+            border-radius: 18px 18px 18px 0;
+        }
+
+        .bubble {
+            display: inline-block;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .sources {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .sources strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .source-link {
+            display: block;
+            margin: 3px 0;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+
+        .confidence {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            background: #e7f3ff;
+            color: #1890ff;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-area input:focus {
+            border-color: #667eea;
+        }
+
+        .input-area button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .input-area button:hover {
+            background: #764ba2;
+        }
+
+        .input-area button:active {
+            transform: scale(0.98);
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+        }
+
+        .loading .dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .loading .dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .loading .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #c33;
+            margin-bottom: 15px;
+        }
+
+        .info {
+            text-align: center;
+            color: #6c757d;
+            padding: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .bubble {
+                max-width: 85%;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Policy Chat Assistant</h1>
+            <p>Ask questions about company policies and data practices</p>
+        </div>
+
+        <div class="controls">
+            <label>
+                Company:
+                <select id="companySelect">
+                    <option value="">All Companies</option>
+                    <!-- Will be populated by JavaScript -->
+                </select>
+            </label>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="info">
+                <p>Welcome to the Policy Chat Assistant!</p>
+                <p style="font-size: 12px; margin-top: 10px;">Ask me about privacy policies, data practices, or data deletion procedures.</p>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Ask a question about policies..."
+                autocomplete="off"
+            >
+            <button id="sendButton">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatArea = document.getElementById('chatArea');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const companySelect = document.getElementById('companySelect');
+
+        // Load companies on page load
+        window.addEventListener('load', () => {
+            loadCompanies();
+            messageInput.focus();
+        });
+
+        // Send message on Enter key
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Send button click
+        sendButton.addEventListener('click', sendMessage);
+
+        async function loadCompanies() {
+            try {
+                const response = await fetch('/api/companies');
+                if (!response.ok) throw new Error('Failed to load companies');
+                
+                const companies = await response.json();
+                companies.forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company.domain;
+                    option.textContent = company.name;
+                    companySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading companies:', error);
+            }
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Display user message
+            displayMessage(message, 'user');
+            messageInput.value = '';
+            sendButton.disabled = true;
+
+            // Show loading indicator
+            const loadingId = displayLoading();
+
+            try {
+                // Fetch response from API
+                const params = new URLSearchParams({
+                    q: message,
+                    domain: companySelect.value || 'all'
+                });
+
+                const response = await fetch(`/api/chat?${params}`);
+                if (!response.ok) throw new Error('API error');
+                
+                const data = await response.json();
+
+                // Remove loading indicator
+                const loadingElement = document.getElementById(loadingId);
+                if (loadingElement) loadingElement.remove();
+
+                // Display assistant response
+                displayMessage(data.answer, 'assistant', data.sources, data.confidence);
+            } catch (error) {
+                const loadingElement = document.getElementById(loadingId);
+                if (loadingElement) loadingElement.remove();
+
+                displayError(`Error: ${error.message}`);
+            } finally {
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        function displayMessage(text, role, sources = null, confidence = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.textContent = text;
+            messageDiv.appendChild(bubble);
+
+            if (sources && sources.length > 0) {
+                const sourcesDiv = document.createElement('div');
+                sourcesDiv.className = 'sources';
+                sourcesDiv.innerHTML = '<strong>Sources:</strong>';
+                
+                sources.forEach(source => {
+                    const link = document.createElement('a');
+                    link.className = 'source-link';
+                    link.href = source.url;
+                    link.target = '_blank';
+                    link.textContent = `📄 ${source.doc_type} (${(source.relevance_score * 100).toFixed(0)}%)`;
+                    sourcesDiv.appendChild(link);
+                });
+
+                if (confidence) {
+                    const confSpan = document.createElement('span');
+                    confSpan.className = 'confidence';
+                    confSpan.textContent = `Confidence: ${(confidence * 100).toFixed(0)}%`;
+                    sourcesDiv.appendChild(confSpan);
+                }
+
+                messageDiv.appendChild(sourcesDiv);
+            }
+
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function displayLoading() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            const id = 'loading-' + Date.now();
+            messageDiv.id = id;
+
+            const loading = document.createElement('div');
+            loading.className = 'loading';
+            loading.innerHTML = 'Thinking<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+            messageDiv.appendChild(loading);
+
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return id;
+        }
+
+        function displayError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            chatArea.appendChild(errorDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+    </script>
+</body>
+</html>
