@@ -380,43 +380,9 @@ company_scopes table (populated from LLM results, not Template)
 
 **Key Point:** Scope applicability comes from **LLM analysis of policy text**, validated against Template 1.xlsx scope definitions.
 
-For detailed explanation, see [TEMPLATE_ROLE_CLARIFICATION.md](TEMPLATE_ROLE_CLARIFICATION.md).
-
-## 📝 License & Attribution
-
-This project processes publicly available policy documents for research and educational purposes.
-
-## Support
-
-For issues or questions, refer to the documentation in `/docs` or check the implementation status in `PROGRESS.md`.
-
-## Current Status
-
-**Phase 1: Infrastructure & Design**  COMPLETE
-- All Python modules implemented (10 files)
-- Database schema designed (7 tables)
-- Configuration system operational (35+ fields)
-- Policy discovery module complete (4 methods)
-- Scraper module complete (language detection, boilerplate removal)
-- Vector storage integration ready (Qdrant)
-- **Template 1.xlsx role clarified** (reference, not data source)
-
-**Phase 2: End-to-End Testing**  READY TO START
-- Test discovery on 3 real domains (google.com, spotify.com, stripe.com)
-- Validate scraping and text extraction
-- Test Qdrant vector storage population
-- Verify LLM extraction against Template 1.xlsx scopes
-- Validate database population
-- Test enrichment field extraction
-
-**Phase 3: PHP Chat Interface** TODO
-- Semantic search implementation
-- LLM response generation
-- Policy source citations
-
 ---
 
-**Started:** 2024-01-15
-**Last Updated:** 2024-01-20 (Template 1.xlsx clarification)
+**Started:** 2026-01-04
+**Last Updated:** 2026-01-08 (Template 1.xlsx clarification)
 **Status:** Phase 1 Complete, Phase 2 Ready
 **Test Coverage:** Unit tests ready for Phase 2 integration testing
